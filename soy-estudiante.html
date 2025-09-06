@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Colabs — Soy estudiante</title>
+  <meta name="description" content="Formulario de postulación para estudiantes. Los administradores revisarán tu perfil." />
+  <style>
+    :root{ --bg:#0d2b33; --card:#13414d; --txt:#d6e6e8; --sub:#9ab6ba; --acc:#6ba0a6; --acc2:#aacdd1; --ok:#7cf0c9; --err:#f59f9f }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--txt); line-height:1.55 }
+    .container{max-width:760px; margin:0 auto; padding:24px}
+    h1{margin:0 0 8px}
+    .card{background:rgba(19,65,77,.65); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:20px}
+    label{display:block; margin:12px 0 6px; color:var(--sub)}
+    input, textarea, select{ width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.1); background:#0f2e36; color:var(--txt) }
+    textarea{min-height:110px}
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+    .chip{border:1px solid rgba(255,255,255,.25); padding:6px 10px; border-radius:999px; cursor:pointer; user-select:none}
+    .chip.active{background:var(--acc); color:#091020; border-color:transparent}
+    .cta{margin-top:16px; background:var(--acc); color:#091020; border:none; padding:12px 16px; border-radius:12px; font-weight:700; cursor:pointer}
+    .hint{color:var(--sub); font-size:13px}
+    .ok{color:var(--ok); font-weight:600}
+    .err{color:var(--err)}
+    .success{display:none; margin-top:16px; background:rgba(124,240,201,.12); border:1px solid rgba(124,240,201,.35); padding:12px 14px; border-radius:12px}
+    .admin-tools{display:none; margin-top:16px; gap:10px}
+    .admin-tools .btn{background:#0f2e36; border:1px solid rgba(255,255,255,.12); padding:10px 12px; border-radius:10px; color:var(--txt); cursor:pointer}
+    @media (max-width:700px){ .row{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Postulación de estudiante</h1>
+    <p class="hint">Completa tu información. <strong>No se publica automáticamente.</strong> Los administradores la revisarán.</p>
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <label for="nombre">Nombre completo</label>
+          <input id="nombre" placeholder="Ej: Ana Martínez" required />
+        </div>
+        <div>
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="tunombre@correo.com" required />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="carrera">Carrera</label>
+          <select id="carrera" required>
+            <option value="">Selecciona tu carrera</option>
+            <option>ADMINISTRACIÓN DE EMPRESAS</option>
+            <option>COMERCIO EXTERIOR</option>
+            <option>CONTABILIDAD Y AUDITORÍA</option>
+            <option>ECONOMÍA</option>
+            <option>MERCADOTECNIA</option>
+          </select>
+        </div>
+        <div>
+          <label for="ciudad">Ciudad / País</label>
+          <input id="ciudad" placeholder="Ej: Guayaquil, Ecuador" />
+        </div>
+      </div>
+
+      <label for="portafolio">Portafolio o redes (URL)</label>
+      <input id="portafolio" placeholder="https://tu-portafolio.com" />
+
+      <label>Especialidades</label>
+      <div class="chips" id="chips">
+        <span class="chip">Redes sociales</span>
+        <span class="chip">Diseño gráfico</span>
+        <span class="chip">Investigación</span>
+        <span class="chip">Branding</span>
+        <span class="chip">Email marketing</span>
+        <span class="chip">Landing page</span>
+        <span class="chip">Fotografía</span>
+        <span class="chip">Video</span>
+        <span class="chip">Analytics</span>
+        <span class="chip">Gestión financiera</span>
+        <span class="chip">Contabilidad</span>
+        <span class="chip">Auditoría</span>
+      </div>
+
+      <div class="row">
+        <div>
+        </div>
+        <div>
+          <label for="disponibilidad">Disponibilidad</label>
+          <select id="disponibilidad">
+            <option>Part time</option>
+            <option>Horas sueltas</option>
+            <option>Fines de semana</option>
+            <option>Full time</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="descripcion">Descripción breve</label>
+      <textarea id="descripcion" placeholder="Cuéntanos en 2–3 líneas tus habilidades, experiencia o lo que buscas."></textarea>
+
+      <label style="display:flex; align-items:center; gap:8px; margin-top:10px">
+        <input id="consent" type="checkbox" style="width:auto" />
+        Acepto que mis datos sean revisados por los administradores de Colabs.
+      </label>
+
+      <button class="cta" id="enviar">Enviar postulación</button>
+      <p id="estado" class="hint" style="margin-top:8px"></p>
+      <div id="success" class="success">¡Postulación enviada! Los administradores la revisarán. Puedes cerrar esta pestaña.</div>
+    </div>
+
+    <!-- Herramientas solo para admins: visibles si la URL trae ?admin=1 -->
+    <div id="adminTools" class="admin-tools">
+      <button class="btn" id="copiar">Copiar JSON</button>
+      <button class="btn" id="descargar">Descargar JSON</button>
+      <button class="btn" id="limpiar">Vaciar postulaciones</button>
+      <span class="hint">Modo admin activo</span>
+    </div>
+  </main>
+
+  <script>
+    const LS_KEY = 'colabs_solicitudes';
+    const el = id => document.getElementById(id);
+    const chipsBox = el('chips');
+
+    // Toggle chips
+    chipsBox.querySelectorAll('.chip').forEach(ch =>
+      ch.addEventListener('click', () => ch.classList.toggle('active'))
+    );
+
+    // Utils LS
+    const getLS = () => { try{ return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; } };
+    const setLS = (arr) => localStorage.setItem(LS_KEY, JSON.stringify(arr));
+
+    // Validaciones
+    const isEmail = v => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v || '');
+
+    // Enviar
+    el('enviar').addEventListener('click', () => {
+      const nombre = el('nombre').value.trim();
+      const email = el('email').value.trim();
+      const carrera = el('carrera').value.trim();
+      const ciudad = el('ciudad').value.trim();
+      const portafolio = el('portafolio').value.trim();
+      const disponibilidad = el('disponibilidad').value.trim();
+      const descripcion = el('descripcion').value.trim();
+      const consent = el('consent').checked;
+      const tags = Array.from(chipsBox.querySelectorAll('.chip.active')).map(c=>c.textContent.trim());
+
+      const estado = el('estado');
+      const success = el('success');
+
+      // Campos obligatorios
+      if(!nombre || !email || !carrera){
+        estado.innerHTML = '<span class="err">Completa nombre, email y carrera.</span>';
+        return;
+      }
+      if(!isEmail(email)){
+        estado.innerHTML = '<span class="err">El email no es válido.</span>';
+        return;
+      }
+      if(!consent){
+        estado.innerHTML = '<span class="err">Debes aceptar la revisión de datos.</span>';
+        return;
+      }
+
+      const solicitud = {
+        id: Date.now(),
+        nombre, email, carrera, ciudad, portafolio, disponibilidad, descripcion, tags,
+        creado_en: new Date().toISOString()
+      };
+
+      const arr = getLS();
+      arr.push(solicitud);
+      setLS(arr);
+
+      // Feedback
+      estado.textContent = '';
+      success.style.display = 'block';
+      // Limpieza visual
+      ['nombre','email','ciudad','portafolio','descripcion'].forEach(i => el(i).value = '');
+      el('carrera').value = '';
+      el('disponibilidad').value = 'Part time';
+      el('consent').checked = false;
+      chipsBox.querySelectorAll('.chip.active').forEach(ch => ch.classList.remove('active'));
+    });
+
+    // Modo admin oculto activable con ?admin=1
+    const params = new URLSearchParams(location.search);
+    if (params.get('admin') === '1') {
+      const box = el('adminTools');
+      box.style.display = 'flex';
+
+      el('copiar').addEventListener('click', async () => {
+        const data = JSON.stringify(getLS(), null, 2);
+        await navigator.clipboard.writeText(data);
+        alert('Postulaciones copiadas al portapapeles.');
+      });
+
+      el('descargar').addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(getLS(), null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'colabs_solicitudes.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      });
+
+      el('limpiar').addEventListener('click', () => {
+        if(!confirm('Esto borrará todas las postulaciones guardadas en este navegador.')) return;
+        setLS([]);
+        alert('Postulaciones eliminadas.');
+      });
+    }
+  </script>
+</body>
+</html>

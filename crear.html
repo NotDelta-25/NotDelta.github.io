@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Colabs — Crear perfil (solo admins)</title>
+  <meta name="description" content="Formulario interno para crear perfiles de estudiantes y mostrarlos en la página de Perfiles." />
+  <style>
+    :root{ --bg:#0d2b33; --card:#13414d; --txt:#d6e6e8; --sub:#9ab6ba; --acc:#6ba0a6 }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background:var(--bg); color:var(--txt); line-height:1.55 }
+    .container{max-width:760px; margin:0 auto; padding:24px}
+    h1{margin:0 0 6px}
+    .hint{color:var(--sub); font-size:13px; margin:0 0 16px}
+    .card{background:rgba(19,65,77,.65); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:20px}
+    label{display:block; margin:12px 0 6px; color:var(--sub)}
+    input, textarea, select{ width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.1); background:#0f2e36; color:var(--txt) }
+    textarea{min-height:110px}
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+    .chip{border:1px solid rgba(255,255,255,.25); padding:6px 10px; border-radius:999px; cursor:pointer; user-select:none}
+    .chip.active{background:var(--acc); color:#091020; border-color:transparent}
+    .cta{margin-top:16px; background:var(--acc); color:#091020; border:none; padding:12px 16px; border-radius:12px; font-weight:700; cursor:pointer}
+    .footer{opacity:.8; font-size:14px; text-align:center; padding:24px 0}
+    .preview{display:flex; align-items:center; gap:10px; margin-top:8px}
+    .preview img{width:72px; height:72px; border-radius:50%; object-fit:cover; border:2px solid var(--acc)}
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Crear perfil</h1>
+    <p class="hint">Página interna para administradores. Al guardar, el perfil aparecerá en <code>perfiles.html</code>.</p>
+
+    <div class="card">
+      <label for="nombre">Nombre completo</label>
+      <input id="nombre" placeholder="Ej: Ana Martínez" required />
+
+      <label for="carrera">Carrera</label>
+      <select id="carrera" required>
+        <option value="">Selecciona tu carrera</option>
+        <option>ADMINISTRACIÓN DE EMPRESAS</option>
+        <option>COMERCIO EXTERIOR</option>
+        <option>CONTABILIDAD Y AUDITORÍA</option>
+        <option>ECONOMÍA</option>
+        <option>MERCADOTECNIA</option>
+      </select>
+
+      <label for="descripcion">Descripción breve</label>
+      <textarea id="descripcion" placeholder="2–3 líneas sobre experiencia, intereses y tipo de trabajo que busca"></textarea>
+
+      <div class="row">
+        <div>
+          <label for="fotoUrl">Foto (URL pública)</label>
+          <input id="fotoUrl" placeholder="https://..." />
+        </div>
+        <div>
+          <label for="fotoFile">o sube una foto</label>
+          <input id="fotoFile" type="file" accept="image/*" />
+          <div class="preview" id="preview" style="display:none">
+            <img id="previewImg" alt="Previsualización" />
+            <span class="hint">Se guardará embebida (base64)</span>
+          </div>
+        </div>
+      </div>
+
+      <label>Especialidades</label>
+      <div class="chips" id="chips">
+        <span class="chip">Redes sociales</span>
+        <span class="chip">Diseño gráfico</span>
+        <span class="chip">Investigación</span>
+        <span class="chip">Branding</span>
+        <span class="chip">Email marketing</span>
+        <span class="chip">Landing page</span>
+        <span class="chip">Fotografía</span>
+        <span class="chip">Video</span>
+        <span class="chip">Analytics</span>
+        <span class="chip">Gestión financiera</span>
+        <span class="chip">Contabilidad</span>
+        <span class="chip">Auditoría</span>
+      </div>
+
+      <label for="tagsExtra">Otras etiquetas (separadas por coma)</label>
+      <input id="tagsExtra" placeholder="Ej: Canva, Community, R" />
+
+      <button class="cta" id="guardar">Guardar perfil</button>
+      <p id="estado" class="hint" style="margin-top:8px"></p>
+    </div>
+
+    <p class="footer">© <span id="year"></span> Colabs</p>
+  </main>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const LS_KEY = 'colabs_perfiles';
+
+    const el = id => document.getElementById(id);
+    const nombre = el('nombre');
+    const carrera = el('carrera');
+    const descripcion = el('descripcion');
+    const fotoUrl = el('fotoUrl');
+    const fotoFile = el('fotoFile');
+    const preview = el('preview');
+    const previewImg = el('previewImg');
+    const estado = el('estado');
+    const chipsBox = el('chips');
+    const tagsExtra = el('tagsExtra');
+
+    // Toggle chips
+    chipsBox.querySelectorAll('.chip').forEach(ch => ch.addEventListener('click', () => ch.classList.toggle('active')));
+
+    // Subir archivo a dataURL para embeber
+    fotoFile.addEventListener('change', e => {
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => { preview.style.display='flex'; previewImg.src = reader.result; };
+      reader.readAsDataURL(file);
+    });
+
+    function getLS(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; } }
+    function setLS(arr){ localStorage.setItem(LS_KEY, JSON.stringify(arr)); }
+
+    function uniquePush(arr, perfil){
+      // Evita duplicados por nombre + carrera (criterio simple para demo)
+      const key = (perfil.nombre + '|' + perfil.carrera).toLowerCase();
+      const exists = arr.some(p => (p.nombre + '|' + p.carrera).toLowerCase() === key);
+      if(!exists) arr.push(perfil);
+      return arr;
+    }
+
+    el('guardar').addEventListener('click', () => {
+      if(!nombre.value.trim() || !carrera.value){ estado.textContent = 'Completa nombre y carrera.'; return; }
+
+      // Construye lista de etiquetas
+      const chips = Array.from(chipsBox.querySelectorAll('.chip.active')).map(c=>c.textContent.trim());
+      const extras = tagsExtra.value.split(',').map(s=>s.trim()).filter(Boolean);
+      const tags = Array.from(new Set([...chips, ...extras]));
+
+      const perfil = {
+        id: Date.now(),
+        nombre: nombre.value.trim(),
+        carrera: carrera.value.trim(),
+        descripcion: descripcion.value.trim(),
+        foto: previewImg.src || (fotoUrl.value.trim() || ''),
+        tags
+      };
+
+      const arr = getLS();
+      setLS(uniquePush(arr, perfil));
+      estado.textContent = 'Perfil guardado. Redirigiendo a Perfiles...';
+      setTimeout(()=>{ window.location.href = 'perfiles.html'; }, 700);
+    });
+  </script>
+</body>
+</html>

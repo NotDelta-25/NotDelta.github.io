@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Colabs — Perfiles</title>
+  <meta name="description" content="Explora todas las carpetas y perfiles de estudiantes disponibles en Colabs." />
+  <style>
+    :root{ --bg:#0d2b33; --card:#13414d; --txt:#d6e6e8; --sub:#9ab6ba; --acc:#6ba0a6; --acc2:#aacdd1 }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background:var(--bg); color:var(--txt); line-height:1.55 }
+    .container{max-width:1200px; margin:0 auto; padding:24px}
+    h1{text-align:center; margin:0 0 20px}
+
+    .toolbar{ display:flex; justify-content:flex-end; gap:10px; margin-bottom:20px; flex-wrap:wrap }
+    .toolbar input, .toolbar select{
+      padding:10px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.1);
+      background:#0f2e36; color:var(--txt); text-align:center
+    }
+
+    .profiles{display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:20px; margin:20px 0 36px}
+    .profile{background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:18px; display:flex; flex-direction:column; align-items:center; text-align:center}
+    .profile img{width:100px; height:100px; border-radius:50%; object-fit:cover; margin-bottom:12px; border:2px solid var(--acc)}
+    .profile h3{margin:6px 0 8px; font-size:18px}
+    .profile p{margin:0 0 8px; color:var(--sub); font-size:14px}
+    .tag{display:inline-block; margin:2px 4px; padding:6px 10px; border-radius:999px; background:rgba(170,205,209,.16); font-size:13px}
+    .footer{opacity:.8; font-size:14px; text-align:center; padding:28px 0}
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Perfiles de Estudiantes</h1>
+
+    <div class="toolbar">
+      <select id="esp4"><option value="">Especialidad 4</option><option>Redes sociales</option><option>Diseño gráfico</option><option>Investigación</option><option>Branding</option><option>Email marketing</option><option>Landing page</option><option>Fotografía</option><option>Video</option><option>Analytics</option><option>Gestión financiera</option><option>Contabilidad</option><option>Auditoría</option></select>
+      <select id="esp3"><option value="">Especialidad 3</option><option>Redes sociales</option><option>Diseño gráfico</option><option>Investigación</option><option>Branding</option><option>Email marketing</option><option>Landing page</option><option>Fotografía</option><option>Video</option><option>Analytics</option><option>Gestión financiera</option><option>Contabilidad</option><option>Auditoría</option></select>
+      <select id="esp2"><option value="">Especialidad 2</option><option>Redes sociales</option><option>Diseño gráfico</option><option>Investigación</option><option>Branding</option><option>Email marketing</option><option>Landing page</option><option>Fotografía</option><option>Video</option><option>Analytics</option><option>Gestión financiera</option><option>Contabilidad</option><option>Auditoría</option></select>
+      <select id="esp1"><option value="">Especialidad 1</option><option>Redes sociales</option><option>Diseño gráfico</option><option>Investigación</option><option>Branding</option><option>Email marketing</option><option>Landing page</option><option>Fotografía</option><option>Video</option><option>Analytics</option><option>Gestión financiera</option><option>Contabilidad</option><option>Auditoría</option></select>
+      <select id="carrera"><option value="">Carrera</option><option>ADMINISTRACIÓN DE EMPRESAS</option><option>COMERCIO EXTERIOR</option><option>CONTABILIDAD Y AUDITORÍA</option><option>ECONOMÍA</option><option>MERCADOTECNIA</option></select>
+      <input type="text" id="filterInput" placeholder="Buscar por nombre" />
+    </div>
+
+    <div class="profiles" id="profiles"></div>
+
+    <footer class="footer">© <span id="year"></span> Colabs. Hecho con café y colaboración.</footer>
+  </main>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Fuente de datos: SOLO lectura desde localStorage.
+    // Los admins agregan perfiles desde su página privada (crear.html o un panel).
+    const LS_KEY = 'colabs_perfiles';
+    const q = s => document.querySelector(s);
+    const norm = s => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+
+    function getPerfiles() {
+      try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function render() {
+      const grid = q('#profiles');
+      const perfiles = getPerfiles();
+
+      if (!perfiles.length) {
+        grid.innerHTML = '<p style="color:var(--sub); text-align:center; grid-column:1/-1">Aún no hay perfiles publicados.</p>';
+        return;
+      }
+
+      grid.innerHTML = perfiles.map(p => `
+        <div class="profile" data-nombre="${norm(p.nombre)}"
+             data-carrera="${p.carrera}"
+             data-tags="${norm((p.tags || []).join(','))}">
+          <img src="${p.foto || 'https://placehold.co/100x100/png'}" alt="Foto de ${p.nombre}" />
+          <h3>${p.nombre}</h3>
+          <p><strong>Carrera:</strong> ${p.carrera}</p>
+          <p>${p.descripcion || ''}</p>
+          <div>${(p.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        </div>
+      `).join('');
+
+      applyFilters();
+    }
+
+    // Filtros
+    const filterInput = q('#filterInput');
+    const carreraSel = q('#carrera');
+    const esp1 = q('#esp1');
+    const esp2 = q('#esp2');
+    const esp3 = q('#esp3');
+    const esp4 = q('#esp4');
+
+    function applyFilters() {
+      const nameQ = norm(filterInput.value).trim();
+      const carrera = norm(carreraSel.value);
+      const specs = [esp1.value, esp2.value, esp3.value, esp4.value].filter(Boolean).map(norm);
+
+      document.querySelectorAll('.profile').forEach(p => {
+        const n = p.dataset.nombre;
+        const c = norm(p.dataset.carrera);
+        const tags = p.dataset.tags;
+        const nameOk = !nameQ || (n && n.includes(nameQ));
+        const carreraOk = !carrera || c === carrera;
+        const specsOk = specs.every(s => tags.includes(s));
+        p.style.display = nameOk && carreraOk && specsOk ? 'flex' : 'none';
+      });
+    }
+
+    [filterInput, carreraSel, esp1, esp2, esp3, esp4].forEach(el => {
+      el.addEventListener('input', applyFilters);
+      el.addEventListener('change', applyFilters);
+    });
+
+    // Primer render
+    render();
+  </script>
+</body>
+</html>
